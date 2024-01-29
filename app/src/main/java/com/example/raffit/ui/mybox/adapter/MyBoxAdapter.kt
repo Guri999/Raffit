@@ -116,7 +116,7 @@ class MyBoxAdapter(
                     oldItem is MyBoxViewItem.Contents && newItem is MyBoxViewItem.Contents ->
                         oldItem.content.thumnail == newItem.content.thumnail
                     oldItem is MyBoxViewItem.Header && newItem is MyBoxViewItem.Header ->
-                        true // Headers are always the same in this context
+                        true
                     else ->
                         false
                 }
