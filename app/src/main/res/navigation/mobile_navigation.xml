@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/nav_search_img">
+
+    <fragment
+        android:id="@+id/nav_search_img"
+        android:name="com.example.raffit.ui.search.SearchFragment"
+        android:label="@string/nav_search_img"
+        tools:layout="@layout/fragment_search" />
+
+    <fragment
+        android:id="@+id/nav_my_box"
+        android:name="com.example.raffit.ui.mybox.MyBoxFragment"
+        android:label="@string/nav_my_box"
+        tools:layout="@layout/fragment_mybox" />
+</navigation>

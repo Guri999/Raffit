@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Raffit</string>
+    <string name="nav_search_img">이미지 검색</string>
+    <string name="nav_my_box">내 보관함</string>
+    <string name="search_hint">검색어를 입력 하세요</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
