@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -149,7 +150,8 @@ class SearchAdapter(
             ivThumbnail.load(item.thumnail) {
                 crossfade(true)
                 memoryCachePolicy(CachePolicy.ENABLED)
-                diskCachePolicy(CachePolicy.ENABLED)/*
+                diskCachePolicy(CachePolicy.ENABLED)
+            placeholder(R.drawable.background_round_radius_20dp)
                 listener(
                     onStart = {
                         // 로딩 시작
@@ -158,12 +160,16 @@ class SearchAdapter(
                         // 로딩 성공 시 로그 출력
                         val end = System.currentTimeMillis()
                         Log.d("coil", "Time: ${end - start}ms")
+                        tvError.isVisible = false
+                        ivThumbnailError.isVisible = false
                     },
                     onError = { _, _ ->
                         Log.e("coil", "failed: $count")
                         count++
+                        tvError.isVisible = true
+                        ivThumbnailError.isVisible = true
                     }
-                )*/
+                )
             }
             tvTitle.text = item.title
             tvDate.text = item.date
