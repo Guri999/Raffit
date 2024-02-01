@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import coil.load
+import coil.request.CachePolicy
+import coil.size.Scale
 import com.example.raffit.R
 import com.example.raffit.data.model.SearchModel
 import com.example.raffit.databinding.ItemImgBinding
@@ -142,7 +144,27 @@ class SearchAdapter(
     ) :
         RecyclerView.ViewHolder(binding.root) {
         fun setView(item: SearchModel) = with(binding) {
-            ivThumbnail.load(item.thumnail)
+            val start = System.currentTimeMillis()
+            var count = 1
+            ivThumbnail.load(item.thumnail) {
+                crossfade(true)
+                memoryCachePolicy(CachePolicy.ENABLED)
+                diskCachePolicy(CachePolicy.ENABLED)/*
+                listener(
+                    onStart = {
+                        // 로딩 시작
+                    },
+                    onSuccess = { _, _ ->
+                        // 로딩 성공 시 로그 출력
+                        val end = System.currentTimeMillis()
+                        Log.d("coil", "Time: ${end - start}ms")
+                    },
+                    onError = { _, _ ->
+                        Log.e("coil", "failed: $count")
+                        count++
+                    }
+                )*/
+            }
             tvTitle.text = item.title
             tvDate.text = item.date
             tvSite.text = item.siteName

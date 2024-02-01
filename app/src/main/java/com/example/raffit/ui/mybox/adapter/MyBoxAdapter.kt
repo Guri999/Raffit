@@ -71,6 +71,8 @@ class MyBoxAdapter(
     ) :
         RecyclerView.ViewHolder(binding.root) {
         fun setView(item: SearchModel) = with(binding) {
+            val start = System.currentTimeMillis()
+
             ivThumbnail.load(item.thumnail)
             tvTitle.text = item.title
             tvDate.text = item.date
