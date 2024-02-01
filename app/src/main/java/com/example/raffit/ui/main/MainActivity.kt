@@ -1,18 +1,16 @@
 package com.example.raffit.ui.main
 
-import android.content.Context
+import android.content.res.ColorStateList
 import android.os.Bundle
-import android.view.View
-import android.view.inputmethod.InputMethodManager
-import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.raffit.R
-import com.example.raffit.utill.fab.FabRecyclerViewScrollUp
 import com.example.raffit.databinding.ActivityMainBinding
-import com.example.raffit.utill.appbar.AppbarRecyclerScrollListener
+import com.example.raffit.utill.fab.FabRecyclerViewScrollUp
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,11 +22,6 @@ class MainActivity : AppCompatActivity() {
     private val navController by lazy {
         findNavController(R.id.nav_host_fragment_activity_main)
     }
-
-    private val appbarState by lazy {
-        AppbarRecyclerScrollListener(binding.abMainAppbar)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -38,66 +31,44 @@ class MainActivity : AppCompatActivity() {
 
     private fun initView() {
         initBottomNav()
-        setSearch()
-        loadQuery()
+        setBottomNav()
     }
 
-    private fun setSearch() = with(binding) {
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
-            androidx.appcompat.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                saveQuery(query)
-                submitQuery(query)
-                hideKeyboard(this@MainActivity, searchView)
-                return true
-            }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                return false // 검색어 추천등 추가 하면 좋을 듯
-            }
-        })
-    }
-
-    private fun submitQuery(query: String?): Boolean {
-        return if (query == null) {
-            false
-        } else {
-            val bundle = Bundle().apply {
-                putString("searchQuery", query)
-            }
-            navController.navigate(R.id.nav_search_img, bundle)
-            true
-        }
-    }
-
-    private fun hideKeyboard(context: Context, view: View) {
-        val imm = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
-    }
-
-    private fun initBottomNav() {
-        binding.navView.setupWithNavController(navController)
-    }
-
-    private fun saveQuery(query: String?) {
-        val pref = getSharedPreferences("lastQuery", Context.MODE_PRIVATE)
-        pref.edit().apply {
-            putString("lastQuery", query)
-            apply()
-        }
+    private fun initBottomNav() = with(binding){
+        navView.setupWithNavController(navController)
     }
 
     fun setFab(recyclerView: RecyclerView) {
         recyclerView.let {
             fabScrollUp(this.binding.fbMainFab, it) { it.scrollToPosition(0) }
-            appbarState(it)
         }
     }
 
+    private fun setBottomNav() = with(binding) {
+        val state = arrayOf(
+            intArrayOf(android.R.attr.state_checked),
+            intArrayOf(-android.R.attr.state_checked)
+        )
 
-    private fun loadQuery() {
-        val pref = getSharedPreferences("lastQuery", Context.MODE_PRIVATE)
+        val color = intArrayOf(
+            getColor(R.color.background),
+            getColor(R.color.enable)
+        )
 
-        binding.searchView.setQuery(pref.getString("lastQuery", ""), false)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.homeFragment -> {
+                    navView.elevation = 0.0f
+                    navView.background.setTint(getColor(R.color.background))
+                    fbMainFab.isVisible = false
+                }
+                else -> {
+                    navView.elevation = 8.0f
+                    navView.background.setTint(getColor(R.color.white))
+                    navView.itemIconTintList = ColorStateList(state,color)
+                }
+            }
+        }
     }
 }

@@ -1,8 +1,5 @@
 package com.example.raffit.ui.mybox.adapter
 
-import android.content.ClipData.Item
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -21,9 +18,9 @@ import com.example.raffit.ui.mybox.model.MyBoxViewItem
 import java.lang.IllegalStateException
 
 class MyBoxAdapter(
+    private val itemLongClick: (item: SearchModel) -> Boolean,
     private val itemClick: (view: View, position: Int, item: SearchModel) -> Unit
-) : ListAdapter<MyBoxViewItem, RecyclerView.ViewHolder>(SearchDiffCallback) {//서치 모델을 실드클래스로
-
+) : ListAdapter<MyBoxViewItem, RecyclerView.ViewHolder>(SearchDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
@@ -36,7 +33,7 @@ class MyBoxAdapter(
             ITEM_VIEW_TYPE_ITEM -> {
                 val binding =
                     ItemImgBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                ContentsHolder(binding, itemClick)
+                ContentsHolder(binding, itemLongClick, itemClick)
             }
 
             else -> {
@@ -50,12 +47,12 @@ class MyBoxAdapter(
         val layoutParams = holder.itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
         when (holder) {
             is ContentsHolder -> {
-                layoutParams.spanIndex
+                layoutParams.isFullSpan = false
                 val item = getItem(position) as MyBoxViewItem.Contents
                 holder.setView(item.content)
             }
             is HeaderHolder -> {
-                layoutParams.isFullSpan
+                layoutParams.isFullSpan = true
                 holder.setView()
             }
         }
@@ -63,6 +60,9 @@ class MyBoxAdapter(
 
     class ContentsHolder(
         private val binding: ItemImgBinding,
+        private val itemLongClick: (
+                item: SearchModel
+                ) -> Boolean,
         private val itemClick: (
             view: View,
             position: Int,
@@ -79,6 +79,9 @@ class MyBoxAdapter(
             ivBookmark.visibility = View.GONE
             root.setOnClickListener {
                 itemClick(it, adapterPosition, item)
+            }
+            root.setOnLongClickListener {
+                itemLongClick(item)
             }
         }
 

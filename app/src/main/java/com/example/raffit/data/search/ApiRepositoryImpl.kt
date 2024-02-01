@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class ApiRepositoryImpl: ApiRepository {
+class ApiRepositoryImpl : ApiRepository {
     private var searchList: MutableList<SearchModel> = mutableListOf()
 
     private val formatter = DateTimeFormatter.ofPattern("yy-MM-dd HH-mm-ss")
@@ -40,26 +40,87 @@ class ApiRepositoryImpl: ApiRepository {
         )
     }
 
-    override suspend fun searchData(query: String, sort: String, page: Int): MutableList<SearchModel> {
+    override suspend fun searchData(
+        query: String,
+        sort: String,
+        page: Int,
+        type: String
+    ): MutableList<SearchModel> {
         if (page == 1) searchList.clear()
-        searchList.addAll(loadApiData(query,sort,page))
+        when (type) {
+            "total" -> searchList.addAll(loadApiData(query, sort, page))
+            "image" -> searchList.addAll(loadImageData(query, sort, page))
+            "videos" -> searchList.addAll(loadVideoData(query, sort, page))
+        }
+
         return searchList
     }
 
-    private suspend fun loadApiData(query: String, sort: String, page: Int): MutableList<SearchModel> {
+    private suspend fun loadImageData(
+        query: String,
+        sort: String,
+        page: Int
+    ): MutableList<SearchModel> {
         return withContext(Dispatchers.IO) {
-            val imageResultsDeferred = async { searchImage(query, sort, page)
-                .documents?.map { convertImageSearchModel(it) } }
+            val imageResultsDeferred = async {
+                searchImage(query, sort, page)
+                    .documents?.map { convertImageSearchModel(it) }
+            }
+            val imageResults = imageResultsDeferred.await() ?: listOf()
 
-            val vclipResultsDeferred = async { searchVclip(query, sort, page)
-                .documents?.map { convertVideoSearchModel(it) } }
+            if (sort != "accuracy") {
+                imageResults.sortedByDescending { LocalDateTime.parse(it.date, formatter) }
+                    .toMutableList()
+            } else imageResults.toMutableList()
+        }
+    }
+
+    private suspend fun loadVideoData(
+        query: String,
+        sort: String,
+        page: Int
+    ): MutableList<SearchModel> {
+        return withContext(Dispatchers.IO) {
+            val vclipResultsDeferred = async {
+                searchVclip(query, sort, page)
+                    .documents?.map { convertVideoSearchModel(it) }
+            }
+            val vclipResults = vclipResultsDeferred.await() ?: listOf()
+            if (sort != "accuracy") {
+                vclipResults.sortedByDescending { LocalDateTime.parse(it.date, formatter) }
+                    .toMutableList()
+            } else {
+                vclipResults.toMutableList()
+            }
+        }
+    }
+
+    private suspend fun loadApiData(
+        query: String,
+        sort: String,
+        page: Int
+    ): MutableList<SearchModel> {
+        return withContext(Dispatchers.IO) {
+            val imageResultsDeferred = async {
+                searchImage(query, sort, page)
+                    .documents?.map { convertImageSearchModel(it) }
+            }
+
+            val vclipResultsDeferred = async {
+                searchVclip(query, sort, page)
+                    .documents?.map { convertVideoSearchModel(it) }
+            }
 
             val imageResults = imageResultsDeferred.await() ?: listOf()
             val vclipResults = vclipResultsDeferred.await() ?: listOf()
-
             val combinedResults = imageResults + vclipResults
 
-            combinedResults.sortedByDescending { LocalDateTime.parse(it.date, formatter) }.toMutableList()
+            if (sort != "accuracy") {
+                combinedResults.sortedByDescending { LocalDateTime.parse(it.date, formatter) }
+                    .toMutableList()
+            } else {
+                combinedResults.toMutableList()
+            }
         }
     }
 

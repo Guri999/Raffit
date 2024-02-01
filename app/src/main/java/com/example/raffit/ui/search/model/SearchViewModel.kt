@@ -1,6 +1,7 @@
 package com.example.raffit.ui.search.model
 
 import android.util.Log
+import android.widget.SearchView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,28 +19,60 @@ class SearchViewModel(
     private val _itemList: MutableLiveData<MutableList<SearchModel>> = MutableLiveData()
     val itemList: LiveData<MutableList<SearchModel>> get() = _itemList
 
-    private val _page: MutableLiveData<Int> = MutableLiveData(1)
-    val page: LiveData<Int> get() = _page
+    private val _searchState: MutableLiveData<SearchState> = MutableLiveData(SearchState(""))
+    val searchState: LiveData<SearchState> get() = _searchState
 
-    fun searchItems(query: String, page: Int) {
+    private val _searchViewItem: MutableLiveData<List<SearchViewItem>> = MutableLiveData()
+    val searchViewItem: LiveData<List<SearchViewItem>> get() = _searchViewItem
+    fun searchItems(state: SearchState) {
         viewModelScope.launch {
             runCatching {
-                val search = repository.searchData(query, "recency", page)
+
+                val search = repository.searchData(
+                    query = state.query,
+                    sort = state.sort,
+                    page = state.page,
+                    type = state.itemType
+                )
                 _itemList.postValue(search.toMutableList())
+
             }.onFailure { error ->
                 Log.e("SearchViewModel", "Error fetching data: ${error.message}", error)
             }
-            setBookmark()
+        }
+    }
+
+    fun queryState(query: String) {
+        runCatching {
+            _searchState.value = _searchState.value?.let {
+                it.copy(query = query)
+            }
+            searchItems(_searchState.value!!)
+        }.onFailure { error ->
+            Log.e("queryState", "Error fetching data: ${error.message}", error)
+        }
+    }
+
+    fun sortState(sort: String) {
+        _searchState.value = _searchState.value?.let {
+            it.copy(sort = sort, page = 1)
+        }
+    }
+
+    fun typeState(type: String) {
+        _searchState.value = _searchState.value?.let {
+            it.copy(itemType = type, page = 1)
         }
     }
 
     fun scrollPage() {
         runCatching {
-            _page.value = _page.value?.plus(1)
+            _searchState.value = _searchState.value?.let {
+                it.copy(page = it.page.plus(1))
+            }
         }.onFailure { error ->
             Log.e("SearchViewModel", "Error fetching data: ${error.message}", error)
         }
-        setBookmark()
     }
 
     fun addBookmark(item: SearchModel) {
@@ -56,18 +89,21 @@ class SearchViewModel(
         }
         setBookmark()
     }
-
-    private fun setBookmark() {
+    fun setBookmark() {
         val bookmarkChk = bookmarkRepository.checkBookmark()
         runCatching {
-            val bookmarkItem = _itemList.value.orEmpty().map { item ->
+            val bookmarkItem = itemList.value.orEmpty().map { item ->
                 if (bookmarkChk[item.thumnail] != null) {
                     item.copy(bookMark = true)
                 } else {
                     item.copy(bookMark = false)
                 }
             }
-            _itemList.value = bookmarkItem.toMutableList()
+            val viewTypeItems = listOf(
+                SearchViewItem.ItemType(searchState.value?.itemType ?: "total"),
+                SearchViewItem.SortType(searchState.value?.sort ?: "recency")
+            ) + bookmarkItem.map { SearchViewItem.Contents(it.copy()) }
+            _searchViewItem.value = viewTypeItems
         }.onFailure { error ->
             Log.e("setBookmark", "Error fetching data: ${error.message}", error)
         }

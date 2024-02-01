@@ -3,17 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@id/nav_search_img">
+    app:startDestination="@id/homeFragment">
 
     <fragment
         android:id="@+id/nav_search_img"
         android:name="com.example.raffit.ui.search.SearchFragment"
-        android:label="@string/nav_search_img"
         tools:layout="@layout/fragment_search" />
 
     <fragment
         android:id="@+id/nav_my_box"
         android:name="com.example.raffit.ui.mybox.MyBoxFragment"
-        android:label="@string/nav_my_box"
         tools:layout="@layout/fragment_mybox" />
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.raffit.ui.main.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_nav_search_img"
+            app:destination="@id/nav_search_img" />
+    </fragment>
 </navigation>

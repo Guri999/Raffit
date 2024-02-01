@@ -7,9 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.raffit.data.model.SearchModel
 import com.example.raffit.data.bookmark.BookmarkRepository
+import com.example.raffit.utill.SaveImageToFile
 import kotlinx.coroutines.launch
 
-class MyBoxViewModel(private val bookmarkRepository: BookmarkRepository) : ViewModel() {
+class MyBoxViewModel(private val bookmarkRepository: BookmarkRepository,
+    private val saveImageToFile: SaveImageToFile) : ViewModel() {
     private val _itemList: MutableLiveData<MutableList<SearchModel>> = MutableLiveData()
     val itemList: LiveData<MutableList<SearchModel>> get() = _itemList
 
@@ -34,6 +36,12 @@ class MyBoxViewModel(private val bookmarkRepository: BookmarkRepository) : ViewM
             }.onFailure { error ->
                 Log.e("MyBoxViewModel", "Error fetching data: ${error.message}", error)
             }
+        }
+    }
+
+    fun saveImage(url: String) {
+        viewModelScope.launch {
+            saveImageToFile(url)
         }
     }
 }

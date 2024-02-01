@@ -1,21 +1,37 @@
 package com.example.raffit.ui.search
 
+import android.content.Context
 import android.os.Bundle
+import android.transition.TransitionInflater
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import android.widget.SearchView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.room.util.query
+import com.example.raffit.R
 import com.example.raffit.ui.main.MainActivity
 import com.example.raffit.data.search.ApiRepositoryImpl
 import com.example.raffit.data.model.SearchModel
 import com.example.raffit.data.bookmark.BookmarkRepositoryImpl
 import com.example.raffit.databinding.FragmentSearchBinding
 import com.example.raffit.ui.search.adpater.SearchAdapter
+import com.example.raffit.ui.search.model.SearchState
+import com.example.raffit.ui.search.model.SearchViewItem
 import com.example.raffit.ui.search.model.SearchViewModel
 import com.example.raffit.ui.search.model.SearchViewModelFactory
+import com.example.raffit.utill.appbar.AppbarRecyclerScrollListener
+import kotlinx.coroutines.launch
 
 class SearchFragment : Fragment() {
 
@@ -28,15 +44,28 @@ class SearchFragment : Fragment() {
     private val viewModel: SearchViewModel by viewModels {
         SearchViewModelFactory(
             ApiRepositoryImpl(),
-            BookmarkRepositoryImpl(requireContext())
+            BookmarkRepositoryImpl(requireContext().applicationContext)
         )
+    }
+
+    private val appbarController by lazy {
+        AppbarRecyclerScrollListener(binding.abSearchAppbar)
     }
 
     private val adapter get() = _adapter
 
     private var isLoading = false
-
-    private lateinit var item: List<SearchModel>
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        runCatching {
+            sharedElementReturnTransition = TransitionInflater.from(context)
+                .inflateTransition(android.R.transition.move)
+        }.onFailure {
+            Log.e("searchTransition", "$it")
+        }
+        sharedElementEnterTransition = TransitionInflater.from(context)
+            .inflateTransition(android.R.transition.move)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,6 +76,7 @@ class SearchFragment : Fragment() {
 
         return binding.root
     }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initView()
@@ -54,19 +84,86 @@ class SearchFragment : Fragment() {
 
     private fun initView() {
         setAdapter()
-        searchQuery()
         setupInfiniteScroll()
+        setSearch()
+        setQueryOnSearchView()
+
+        appbarController(binding.rcSearchGrid)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                setupFab()
+            }
+        }
+
+        viewModel.searchState.observe(viewLifecycleOwner) {
+            viewModel.searchItems(it)
+        }
+
+        viewModel.itemList.observe(viewLifecycleOwner) {
+            viewModel.setBookmark()
+        }
+    }
+
+    private fun setSearch() = with(binding) {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener,
+            androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                saveQuery(query)
+                submitQuery(query)
+                hideKeyboard(requireContext(), searchView)
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false // 검색어 추천등 추가 하면 좋을 듯
+            }
+        })
+    }
+
+    private fun setQueryOnSearchView() = with(binding) {
+        val world = arguments?.getString("searchQuery")
+        if (world != null) {
+            searchView.setQuery(world, true)
+            binding.searchView.isIconified = false
+        }
+    }
+
+    private fun submitQuery(query: String?): Boolean {
+        return if (query == null) {
+            false
+        } else {
+            viewModel.queryState(query)
+            true
+        }
+    }
+
+    private fun hideKeyboard(context: Context, view: View) {
+        val imm =
+            context.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    private fun saveQuery(query: String?) {
+        val pref = requireActivity().getSharedPreferences("lastQuery", Context.MODE_PRIVATE)
+        pref.edit().apply {
+            putString("lastQuery", query)
+            apply()
+        }
     }
 
     private fun setAdapter() {
-        _adapter = SearchAdapter(this::onClickItem)
+        _adapter = SearchAdapter(
+            btnClick = this::onClickBtn,
+            itemClick = this::onClickItem
+        )
         binding.rcSearchGrid.adapter = adapter
-        binding.rcSearchGrid.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        binding.rcSearchGrid.layoutManager =
+            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
 
-        viewModel.itemList.observe(viewLifecycleOwner){ models ->
-            item = models.map { it.copy() }
 
-            adapter?.submitList(item)
+        viewModel.searchViewItem.observe(viewLifecycleOwner) { models ->
+            adapter?.submitList(models)
             isLoading = false
         }
     }
@@ -78,7 +175,8 @@ class SearchFragment : Fragment() {
 
                 val layoutManager = recyclerView.layoutManager as StaggeredGridLayoutManager
                 val totalItemCount = layoutManager.itemCount
-                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPositions(null).maxOrNull() ?: 0
+                val lastVisibleItemPosition =
+                    layoutManager.findLastVisibleItemPositions(null).maxOrNull() ?: 0
 
                 if (isLoading.not() && lastVisibleItemPosition > totalItemCount - 5) {
                     viewModel.scrollPage()
@@ -88,25 +186,20 @@ class SearchFragment : Fragment() {
         })
     }
 
-    private fun searchQuery() {
-        val word = arguments?.getString("searchQuery")
-        if (word != null) {
-            viewModel.searchItems(word,1)
-            viewModel.page.observe(viewLifecycleOwner) {page->
-                viewModel.searchItems(word, page)
-            }
-        }
-    }
 
     private fun onClickItem(view: View, position: Int, item: SearchModel) {
         viewModel.addBookmark(item)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        setupFab()
-    }//라이프사이클 옵저버: 디벨로퍼를 보자
+    private fun onClickBtn(view: View) {
+        when (view.id) {
+            R.id.bt_item_total -> viewModel.typeState("total")
+            R.id.bt_item_img -> viewModel.typeState("image")
+            R.id.bt_item_video -> viewModel.typeState("videos")
+            R.id.bt_item_accuracy -> viewModel.sortState("accuracy")
+            R.id.bt_item_recency -> viewModel.sortState("recency")
+        }
+    }
 
     private fun setupFab() = (activity as MainActivity).setFab(binding.rcSearchGrid)
 
