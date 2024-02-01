@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,8 +16,8 @@ import java.net.URL
 
 class SaveImageToFile(private val activity: Activity) {
     suspend operator fun invoke(imageUrl: String) = withContext(Dispatchers.IO) {
-        withContext(Dispatchers.Main){
-            Toast.makeText(activity, "다운로드를 시작합니다.", Toast.LENGTH_SHORT)
+        withContext(Dispatchers.Main) {
+            Toast.makeText(activity, "다운로드를 시작합니다.", Toast.LENGTH_SHORT).show()
         }
         val url = URL(imageUrl)
         val connection = url.openConnection() as HttpURLConnection
@@ -37,7 +38,7 @@ class SaveImageToFile(private val activity: Activity) {
 
         val imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 
-        return@withContext try {
+        return@withContext runCatching {
             contentResolver.openFileDescriptor(imageUri!!, "w")?.use { pfd ->
                 FileOutputStream(pfd.fileDescriptor).use { outputStream ->
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
@@ -48,11 +49,11 @@ class SaveImageToFile(private val activity: Activity) {
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             contentResolver.update(imageUri, values, null, null)
 
-            withContext(Dispatchers.Main){
-                Toast.makeText(activity, "다운로드를 완료했습니다.", Toast.LENGTH_SHORT)
+            withContext(Dispatchers.Main) {
+                Toast.makeText(activity, "다운로드를 완료했습니다.", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        }.onFailure {
+            Log.e("SaveImageToFile", "Error fetching data: $it")
         }
     }
 }
