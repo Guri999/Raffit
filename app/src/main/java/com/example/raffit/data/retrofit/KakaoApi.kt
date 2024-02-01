@@ -8,7 +8,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 object KakaoApi {
 
-    private const val KAKAO_BASE_URL = "https://dapi.kakao.com/v2/search/"
+    private const val KAKAO_BASE_URL = "https://dapi.kakao.com/"
 
 
     private fun createOkHttpClient(): OkHttpClient {
