@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import coil.load
+import coil.request.CachePolicy
 import com.example.raffit.R
 import com.example.raffit.data.model.SearchModel
 import com.example.raffit.databinding.ItemImgBinding
@@ -71,9 +73,23 @@ class MyBoxAdapter(
     ) :
         RecyclerView.ViewHolder(binding.root) {
         fun setView(item: SearchModel) = with(binding) {
-            val start = System.currentTimeMillis()
-
-            ivThumbnail.load(item.thumnail)
+            ivThumbnail.load(item.thumnail) {
+                crossfade(true)
+                memoryCachePolicy(CachePolicy.ENABLED)
+                diskCachePolicy(CachePolicy.ENABLED)
+                listener(
+                    onStart = {
+                    },
+                    onSuccess = { _, _ ->
+                        tvError.isVisible = false
+                        ivThumbnailError.isVisible = false
+                    },
+                    onError = { _, _ ->
+                        tvError.isVisible = true
+                        ivThumbnailError.isVisible = true
+                    }
+                )
+            }
             tvTitle.text = item.title
             tvDate.text = item.date
             tvSite.text = item.siteName

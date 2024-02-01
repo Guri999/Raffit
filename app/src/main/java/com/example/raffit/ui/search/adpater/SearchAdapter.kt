@@ -151,13 +151,10 @@ class SearchAdapter(
                 crossfade(true)
                 memoryCachePolicy(CachePolicy.ENABLED)
                 diskCachePolicy(CachePolicy.ENABLED)
-            placeholder(R.drawable.background_round_radius_20dp)
                 listener(
                     onStart = {
-                        // 로딩 시작
                     },
                     onSuccess = { _, _ ->
-                        // 로딩 성공 시 로그 출력
                         val end = System.currentTimeMillis()
                         Log.d("coil", "Time: ${end - start}ms")
                         tvError.isVisible = false
