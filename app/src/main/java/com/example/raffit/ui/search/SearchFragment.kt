@@ -15,10 +15,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import androidx.room.util.query
 import com.example.raffit.R
 import com.example.raffit.ui.main.MainActivity
 import com.example.raffit.data.search.ApiRepositoryImpl
@@ -26,8 +24,6 @@ import com.example.raffit.data.model.SearchModel
 import com.example.raffit.data.bookmark.BookmarkRepositoryImpl
 import com.example.raffit.databinding.FragmentSearchBinding
 import com.example.raffit.ui.search.adpater.SearchAdapter
-import com.example.raffit.ui.search.model.SearchState
-import com.example.raffit.ui.search.model.SearchViewItem
 import com.example.raffit.ui.search.model.SearchViewModel
 import com.example.raffit.ui.search.model.SearchViewModelFactory
 import com.example.raffit.utill.appbar.AppbarRecyclerScrollListener
@@ -187,7 +183,7 @@ class SearchFragment : Fragment() {
     }
 
 
-    private fun onClickItem(view: View, position: Int, item: SearchModel) {
+    private fun onClickItem(item: SearchModel) {
         viewModel.addBookmark(item)
     }
 

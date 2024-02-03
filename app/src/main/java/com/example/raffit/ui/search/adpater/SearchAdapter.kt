@@ -1,6 +1,5 @@
 package com.example.raffit.ui.search.adpater
 
-import android.graphics.ColorFilter
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,22 +14,18 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import coil.load
 import coil.request.CachePolicy
-import coil.size.Scale
 import com.example.raffit.R
 import com.example.raffit.data.model.SearchModel
 import com.example.raffit.databinding.ItemImgBinding
-import com.example.raffit.databinding.ItemMydriveBinding
 import com.example.raffit.databinding.ItemSortBtnBinding
 import com.example.raffit.databinding.ItemTypeBtnBinding
-import com.example.raffit.ui.mybox.adapter.MyBoxAdapter
-import com.example.raffit.ui.mybox.model.MyBoxViewItem
-import com.example.raffit.ui.search.model.SearchState
 import com.example.raffit.ui.search.model.SearchViewItem
 import java.lang.IllegalStateException
+import kotlin.reflect.KFunction1
 
 class SearchAdapter(
     private val btnClick: (view: View) -> Unit,
-    private val itemClick: (view: View, position: Int, item: SearchModel) -> Unit
+    private val itemClick: KFunction1<SearchModel, Unit>
 ) : ListAdapter<SearchViewItem, RecyclerView.ViewHolder>(SearchDiffCallback) {//서치 모델을 실드클래스로
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -137,11 +132,7 @@ class SearchAdapter(
     }
 
     class ContentsHolder(
-        private val binding: ItemImgBinding, private val itemClick: (
-            view: View,
-            position: Int,
-            item: SearchModel
-        ) -> Unit
+        private val binding: ItemImgBinding, private val itemClick: KFunction1<SearchModel, Unit>
     ) :
         RecyclerView.ViewHolder(binding.root) {
         fun setView(item: SearchModel) = with(binding) {
@@ -156,12 +147,12 @@ class SearchAdapter(
                     },
                     onSuccess = { _, _ ->
                         val end = System.currentTimeMillis()
-                        Log.d("coil", "Time: ${end - start}ms")
+                        Log.d("test_coil", "Item $position Time: ${end - start}ms")
                         tvError.isVisible = false
                         ivThumbnailError.isVisible = false
                     },
                     onError = { _, _ ->
-                        Log.e("coil", "failed: $count")
+                        Log.e("test_coil", "failed: ${item.thumnail}")
                         count++
                         tvError.isVisible = true
                         ivThumbnailError.isVisible = true
@@ -174,7 +165,7 @@ class SearchAdapter(
             ivType.toggleType(item.postType)
             ivBookmark.toggleFavorite(item.bookMark)
             root.setOnClickListener {
-                itemClick(it, adapterPosition, item)
+                itemClick(item)
             }
         }
         private fun ImageView.toggleFavorite(bookmark: Boolean) {

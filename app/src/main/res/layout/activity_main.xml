@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:layout_marginTop="30dp"
         android:background="@color/background"
         app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="unlabeled"

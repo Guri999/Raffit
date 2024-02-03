@@ -18,10 +18,11 @@ import com.example.raffit.databinding.ItemImgBinding
 import com.example.raffit.databinding.ItemMydriveBinding
 import com.example.raffit.ui.mybox.model.MyBoxViewItem
 import java.lang.IllegalStateException
+import kotlin.reflect.KFunction1
 
 class MyBoxAdapter(
     private val itemLongClick: (item: SearchModel) -> Boolean,
-    private val itemClick: (view: View, position: Int, item: SearchModel) -> Unit
+    private val itemClick: KFunction1<SearchModel, Unit>
 ) : ListAdapter<MyBoxViewItem, RecyclerView.ViewHolder>(SearchDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -65,11 +66,7 @@ class MyBoxAdapter(
         private val itemLongClick: (
                 item: SearchModel
                 ) -> Boolean,
-        private val itemClick: (
-            view: View,
-            position: Int,
-            item: SearchModel
-        ) -> Unit
+        private val itemClick: KFunction1<SearchModel, Unit>
     ) :
         RecyclerView.ViewHolder(binding.root) {
         fun setView(item: SearchModel) = with(binding) {
@@ -96,7 +93,7 @@ class MyBoxAdapter(
             ivType.toggleType(item.postType)
             ivBookmark.visibility = View.GONE
             root.setOnClickListener {
-                itemClick(it, adapterPosition, item)
+                itemClick(item)
             }
             root.setOnLongClickListener {
                 itemLongClick(item)

@@ -13,6 +13,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityOptionsCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.FragmentNavigator
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import com.example.raffit.R
 import com.example.raffit.databinding.FragmentHomeBinding
@@ -57,9 +58,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun transitionSearchView(query: String?) = with(binding) {
-        val extras = FragmentNavigator.Extras.Builder()
-            .addSharedElement(searchViewHome, "trans")
-            .build()
+        val extras = FragmentNavigatorExtras(searchViewHome to "trans")
+
         if (query != null) {
             findNavController().navigate(
                 resId = R.id.action_homeFragment_to_nav_search_img,

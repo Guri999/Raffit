@@ -1,12 +1,15 @@
 package com.example.raffit.data.search
 
+import android.util.Log
 import com.example.raffit.data.model.ApiResponse
 import com.example.raffit.data.model.ImageDocument
 import com.example.raffit.data.model.SearchModel
 import com.example.raffit.data.model.VclipDocument
 import com.example.raffit.data.retrofit.KakaoApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -19,24 +22,28 @@ class ApiRepositoryImpl : ApiRepository {
     private suspend fun searchImage(
         query: String,
         sort: String,
-        page: Int
+        page: Int,
+        size: Int?
     ): ApiResponse<ImageDocument> {
         return KakaoApi.kakaoNetwork.searchImage(
             query = query,
             sort = sort,
-            page = page
+            page = page,
+            size = size
         )
     }
 
     private suspend fun searchVclip(
         query: String,
         sort: String,
-        page: Int
+        page: Int,
+        size: Int?
     ): ApiResponse<VclipDocument> {
         return KakaoApi.kakaoNetwork.searchVclip(
             query = query,
             sort = sort,
-            page = page
+            page = page,
+            size = size
         )
     }
 
@@ -63,7 +70,7 @@ class ApiRepositoryImpl : ApiRepository {
     ): MutableList<SearchModel> {
         return withContext(Dispatchers.IO) {
             val imageResultsDeferred = async {
-                searchImage(query, sort, page)
+                searchImage(query, sort, page, 80)
                     .documents?.map { convertImageSearchModel(it) }
             }
             val imageResults = imageResultsDeferred.await() ?: listOf()
@@ -82,7 +89,7 @@ class ApiRepositoryImpl : ApiRepository {
     ): MutableList<SearchModel> {
         return withContext(Dispatchers.IO) {
             val vclipResultsDeferred = async {
-                searchVclip(query, sort, page)
+                searchVclip(query, sort, page, 30)
                     .documents?.map { convertVideoSearchModel(it) }
             }
             val vclipResults = vclipResultsDeferred.await() ?: listOf()
@@ -100,20 +107,21 @@ class ApiRepositoryImpl : ApiRepository {
         sort: String,
         page: Int
     ): MutableList<SearchModel> {
+        val start = System.currentTimeMillis()
         return withContext(Dispatchers.IO) {
             val imageResultsDeferred = async {
-                searchImage(query, sort, page)
+                searchImage(query, sort, page, 50)
                     .documents?.map { convertImageSearchModel(it) }
             }
-
             val vclipResultsDeferred = async {
-                searchVclip(query, sort, page)
+                searchVclip(query, sort, page, 30)
                     .documents?.map { convertVideoSearchModel(it) }
             }
-
             val imageResults = imageResultsDeferred.await() ?: listOf()
             val vclipResults = vclipResultsDeferred.await() ?: listOf()
             val combinedResults = imageResults + vclipResults
+            val end = System.currentTimeMillis()
+            Log.d("test_loadApiData", "Time: ${end - start}")
 
             if (sort != "accuracy") {
                 combinedResults.sortedByDescending { LocalDateTime.parse(it.date, formatter) }

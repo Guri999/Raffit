@@ -26,7 +26,6 @@ import com.example.raffit.ui.mybox.model.MyBoxViewModel
 import com.example.raffit.ui.mybox.model.MyBoxViewModelFactory
 import com.example.raffit.utill.SaveImageToFile
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MyBoxFragment : Fragment() {
@@ -89,7 +88,7 @@ class MyBoxFragment : Fragment() {
     }
 
     private fun setupFab() = (activity as MainActivity).setFab(binding.rcMyGrid)
-    private fun onClickItem(view: View, position: Int, item: SearchModel) {
+    private fun onClickItem(item: SearchModel) {
         removeItems(item)
     }
 

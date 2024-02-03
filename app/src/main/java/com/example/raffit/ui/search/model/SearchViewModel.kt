@@ -27,7 +27,7 @@ class SearchViewModel(
     fun searchItems(state: SearchState) {
         viewModelScope.launch {
             runCatching {
-
+                val start = System.currentTimeMillis()
                 val search = repository.searchData(
                     query = state.query,
                     sort = state.sort,
@@ -36,6 +36,8 @@ class SearchViewModel(
                 )
                 _itemList.postValue(search.toMutableList())
 
+                val end = System.currentTimeMillis()
+                Log.d("test_searchItems", "Load Data Time: ${end - start}ms")
             }.onFailure { error ->
                 Log.e("SearchViewModel", "Error fetching data: ${error.message}", error)
             }
@@ -47,7 +49,6 @@ class SearchViewModel(
             _searchState.value = _searchState.value?.let {
                 it.copy(query = query)
             }
-            searchItems(_searchState.value!!)
         }.onFailure { error ->
             Log.e("queryState", "Error fetching data: ${error.message}", error)
         }
@@ -90,6 +91,7 @@ class SearchViewModel(
         setBookmark()
     }
     fun setBookmark() {
+        val start = System.currentTimeMillis()
         val bookmarkChk = bookmarkRepository.checkBookmark()
         runCatching {
             val bookmarkItem = itemList.value.orEmpty().map { item ->
@@ -103,6 +105,9 @@ class SearchViewModel(
                 SearchViewItem.ItemType(searchState.value?.itemType ?: "total"),
                 SearchViewItem.SortType(searchState.value?.sort ?: "recency")
             ) + bookmarkItem.map { SearchViewItem.Contents(it.copy()) }
+
+            val end = System.currentTimeMillis()
+            Log.d("test_bookmark", "Time: ${end - start}ms")
             _searchViewItem.value = viewTypeItems
         }.onFailure { error ->
             Log.e("setBookmark", "Error fetching data: ${error.message}", error)
@@ -110,6 +115,7 @@ class SearchViewModel(
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 class SearchViewModelFactory(
     private val repository: ApiRepository,
     private val bookmarkRepository: BookmarkRepository

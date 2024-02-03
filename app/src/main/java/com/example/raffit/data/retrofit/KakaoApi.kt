@@ -2,10 +2,13 @@ package com.example.raffit.data.retrofit
 
 import com.example.raffit.BuildConfig
 import com.google.gson.GsonBuilder
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
+
 object KakaoApi {
 
     private const val KAKAO_BASE_URL = "https://dapi.kakao.com/"
@@ -21,8 +24,10 @@ object KakaoApi {
             interceptor.level = HttpLoggingInterceptor.Level.NONE
         }
 
+        val connectionPool = ConnectionPool(5, 5, TimeUnit.MINUTES)
 
         return OkHttpClient.Builder()
+            .connectionPool(connectionPool)
             .addNetworkInterceptor(interceptor)
             .addInterceptor(KakaoInterceptor())
             .build()
