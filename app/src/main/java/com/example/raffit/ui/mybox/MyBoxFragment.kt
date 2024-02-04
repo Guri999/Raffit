@@ -26,8 +26,10 @@ import com.example.raffit.ui.mybox.model.MyBoxViewModel
 import com.example.raffit.ui.mybox.model.MyBoxViewModelFactory
 import com.example.raffit.utill.SaveImageToFile
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MyBoxFragment : Fragment() {
 
     private var _binding: FragmentMyboxBinding? = null
@@ -41,12 +43,7 @@ class MyBoxFragment : Fragment() {
         )
     }
 
-    private val viewModel: MyBoxViewModel by viewModels {
-        MyBoxViewModelFactory(
-            BookmarkRepositoryImpl(requireContext().applicationContext),
-            SaveImageToFile(requireActivity())
-        )
-    }
+    private val viewModel: MyBoxViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

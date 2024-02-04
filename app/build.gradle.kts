@@ -5,6 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
     id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 val properties = Properties()
@@ -92,5 +93,9 @@ dependencies {
     implementation ("com.github.mond-al:recyclerview-fastscroller:1.0")
 
     implementation("com.google.guava:guava:33.0.0-jre")
+
+    //hilt
+    implementation("com.google.dagger:hilt-android:2.50")
+    ksp("com.google.dagger:hilt-android-compiler:2.50")
 }
 

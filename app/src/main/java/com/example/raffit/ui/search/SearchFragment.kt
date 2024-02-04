@@ -18,17 +18,16 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.raffit.R
-import com.example.raffit.ui.main.MainActivity
-import com.example.raffit.data.search.ApiRepositoryImpl
 import com.example.raffit.data.model.SearchModel
-import com.example.raffit.data.bookmark.BookmarkRepositoryImpl
 import com.example.raffit.databinding.FragmentSearchBinding
+import com.example.raffit.ui.main.MainActivity
 import com.example.raffit.ui.search.adpater.SearchAdapter
 import com.example.raffit.ui.search.model.SearchViewModel
-import com.example.raffit.ui.search.model.SearchViewModelFactory
 import com.example.raffit.utill.appbar.AppbarRecyclerScrollListener
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class SearchFragment : Fragment() {
 
     private var _binding: FragmentSearchBinding? = null
@@ -37,12 +36,7 @@ class SearchFragment : Fragment() {
 
     private var _adapter: SearchAdapter? = null
 
-    private val viewModel: SearchViewModel by viewModels {
-        SearchViewModelFactory(
-            ApiRepositoryImpl(),
-            BookmarkRepositoryImpl(requireContext().applicationContext)
-        )
-    }
+    private val viewModel: SearchViewModel by viewModels()
 
     private val appbarController by lazy {
         AppbarRecyclerScrollListener(binding.abSearchAppbar)

@@ -1,18 +1,19 @@
 package com.example.raffit.ui.search.model
 
 import android.util.Log
-import android.widget.SearchView
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.raffit.data.search.ApiRepository
-import com.example.raffit.data.model.SearchModel
 import com.example.raffit.data.bookmark.BookmarkRepository
+import com.example.raffit.data.model.SearchModel
+import com.example.raffit.data.search.ApiRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SearchViewModel(
+@HiltViewModel
+class SearchViewModel @Inject constructor(
     private val repository: ApiRepository,
     private val bookmarkRepository: BookmarkRepository
 ) : ViewModel() {
@@ -112,17 +113,5 @@ class SearchViewModel(
         }.onFailure { error ->
             Log.e("setBookmark", "Error fetching data: ${error.message}", error)
         }
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-class SearchViewModelFactory(
-    private val repository: ApiRepository,
-    private val bookmarkRepository: BookmarkRepository
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(SearchViewModel::class.java)) {
-            return SearchViewModel(repository, bookmarkRepository) as T
-        } else throw IllegalArgumentException("Not found ViewModel class.")
     }
 }

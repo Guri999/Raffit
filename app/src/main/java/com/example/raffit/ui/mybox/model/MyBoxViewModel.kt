@@ -8,9 +8,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.raffit.data.model.SearchModel
 import com.example.raffit.data.bookmark.BookmarkRepository
 import com.example.raffit.utill.SaveImageToFile
+import com.google.inject.Inject
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 
-class MyBoxViewModel(private val bookmarkRepository: BookmarkRepository,
+@HiltViewModel
+class MyBoxViewModel @Inject constructor(
+    private val bookmarkRepository: BookmarkRepository,
     private val saveImageToFile: SaveImageToFile) : ViewModel() {
     private val _itemList: MutableLiveData<MutableList<SearchModel>> = MutableLiveData()
     val itemList: LiveData<MutableList<SearchModel>> get() = _itemList

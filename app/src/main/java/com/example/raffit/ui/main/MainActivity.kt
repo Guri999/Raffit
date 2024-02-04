@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.raffit.R
 import com.example.raffit.databinding.ActivityMainBinding
 import com.example.raffit.utill.fab.FabRecyclerViewScrollUp
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
